@@ -4,8 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 
 public class Solution {
@@ -33,26 +31,14 @@ public class Solution {
         return entries;
     }
 
-    private Character mapComplex(ArrayList<String> unknown, String one) {
-        for (String num : unknown) {
-            Character c1 = one.charAt(0);
-            Character c2 = one.charAt(1);
+    private int numChars(String s0, String s1) {
+        int total = 0;
 
-            if ((num.contains(c1.toString())) && (!num.contains(c2.toString()))) { return c2; }
-            if ((!num.contains(c1.toString())) && (num.contains(c2.toString()))) { return c1; }
+        for (Character c : s0.toCharArray()) {
+            if (s1.contains(c.toString())) { total++; }
         }
 
-        return null;
-    }
-
-    private String filter(String s, String filter) {
-        StringBuilder filtered = new StringBuilder();
-
-        for (Character c : s.toCharArray()) {
-            if (!filter.contains(c.toString())) { filtered.append(c); }
-        }
-
-        return filtered.toString();
+        return total;
     }
 
     public void solveP1() {
@@ -70,54 +56,48 @@ public class Solution {
     }
 
     public void solveP2() {
+        int total = 0;
         String seven = "";
         String four  = "";
-        String one   = "";
-        String eight = "";
 
         for (Entry entry : this.entries) {
-            Map<Character, Character> charMapping = new HashMap<>();
-            ArrayList<String> length6             = new ArrayList<>();
-            ArrayList<String> length5             = new ArrayList<>();
+            StringBuilder decode = new StringBuilder();
 
             for (String signal: entry.signalPatterns) {
                 switch (signal.length()) {
-                    case 2: one   = signal; break;
-                    case 3: seven = signal; break;
                     case 4: four  = signal; break;
-                    case 7: eight = signal; break;
-                    case 6: length6.add(signal); break;
-                    case 5: length5.add(signal); break;
+                    case 3: seven = signal; break;
                 }
             }
 
-            String bd          = filter(four, one);
-            Character aMapping = filter(seven, one).charAt(0);
-            Character cMapping = mapComplex(length6, one);
-            Character fMapping = filter(one, cMapping.toString()).charAt(0);
-            Character dMapping = mapComplex(length5, bd);
-            Character bMapping = filter(bd, dMapping.toString()).charAt(0);
+            for (String out : entry.outputSignals) {
+                if (out.length() == 2) {
+                    decode.append('1');
+                } else if (out.length() == 3) {
+                    decode.append('7');
+                } else if (out.length() == 4) {
+                    decode.append('4');
+                } else if (out.length() == 7) {
+                    decode.append('8');
+                } else if ((out.length() == 5) && (numChars(out, seven) == 2) && (numChars(out, four) == 2)) {
+                    decode.append('2');
+                } else if ((out.length() == 5) && (numChars(out, seven) == 3)) {
+                    decode.append('3');
+                } else if ((out.length() == 5) && (numChars(out, seven) == 2) && (numChars(out, four) == 3)) {
+                    decode.append('5');
+                } else if ((out.length() == 6) && (numChars(out, seven) == 3) && (numChars(out, four) == 3)) {
+                    decode.append('0');
+                }  else if ((out.length() == 6) && (numChars(out, seven) == 2) && (numChars(out, four) == 3)) {
+                    decode.append('6');
+                } else if ((out.length() == 6) && (numChars(out, four) == 4)) {
+                    decode.append('9');
+                }
+            }
 
-            String collected = aMapping.toString()
-                    + cMapping.toString()
-                    + fMapping.toString()
-                    + dMapping.toString()
-                    + bMapping.toString();
-
-            String eg          = filter(eight, collected);
-            Character eMapping = mapComplex(length6, eg);
-            Character gMapping = filter(eg, eMapping.toString()).charAt(0);
-
-            charMapping.put(aMapping, 'a');
-            charMapping.put(cMapping, 'c');
-            charMapping.put(fMapping, 'f');
-            charMapping.put(dMapping, 'd');
-            charMapping.put(bMapping, 'b');
-            charMapping.put(eMapping, 'e');
-            charMapping.put(gMapping, 'g');
-
-            System.out.println(charMapping);
+            total += Integer.parseInt(decode.toString());
         }
+
+        System.out.println("Decoded total: " + total);
     }
 
     private static class Entry {
